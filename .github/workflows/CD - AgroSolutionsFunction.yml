@@ -1,0 +1,50 @@
+name: CD - AgroSolutionsFunction
+
+on:
+  push:
+    branches:
+    - main
+    - master
+jobs:
+  build-and-test:
+    name: Build, Testes e Docker Push
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout do código
+      uses: actions/checkout@v4
+
+    - name: Setup do .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Restaurar pacotes
+      run: dotnet restore
+
+    - name: Buildar solução
+      run: dotnet build --no-restore --configuration Release
+
+    - name: Rodar testes
+      run: dotnet test --no-build --configuration Release --logger "trx"
+
+    # --- Início da etapa de Docker ---
+
+    - name: Login no Docker Hub
+      # Só executa se os testes passarem
+      if: success()
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Build e Push da imagem Docker
+      if: success()
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        # A imagem será enviada para o seu repositório no Docker Hub
+        tags: |
+          ${{ secrets.DOCKERHUB_USERNAME }}/agrosolutions-api:latest
+          ${{ secrets.DOCKERHUB_USERNAME }}/agrosolutions-api:${{ github.run_number }}
