@@ -6,16 +6,16 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
-COPY ["AgroSolutionsFunctions.csproj", "./"]
-RUN dotnet restore "AgroSolutionsFunctions.csproj"
+COPY ["AgroSolutionsFunctions/AgroSolutionsFunctions.csproj", "AgroSolutionsFunctions/AgroSolutionsFunctions.csproj"]
+RUN dotnet restore "AgroSolutionsFunctions/AgroSolutionsFunctions.csproj"
 
 COPY . .
 
-RUN dotnet build "AgroSolutionsFunctions.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet build "AgroSolutionsFunctions/AgroSolutionsFunctions.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "AgroSolutionsFunctions.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "AgroSolutionsFunctions/AgroSolutionsFunctions.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /home/site/wwwroot
